@@ -11,6 +11,7 @@ fi
 # Init tic-tac-toe array and stats
 ttt=(0 0 0 0 0 0 0 0 0)
 num_moves=0
+game_date=$(date '+%Y-%m-%d %H:%M:%S')
 
 # Function to print game grid
 function print_grid() {
@@ -29,13 +30,6 @@ function print_grid() {
     done
 }
 
-# Function to check game end
-function win_check() {
-    # 3 or -3 indicates full row/col/diag
-    if [ "$1" == -3 ]; then game_end 2; fi
-    if [ "$1" == 3 ]; then game_end 1; fi
-}
-
 # Function to declare victory and write out game stats
 function game_end() {
     print_grid
@@ -44,45 +38,19 @@ function game_end() {
     else
         echo -e "\nDRAW"
     fi
-    echo "$1, $num_moves, ${ttt[*]}" >> $stats
-    game_valid=false
+    echo "$game_date, $1, $num_moves, ${ttt[*]}" >> $stats
+    exit 0
 }
 
-# Run until game end
-game_valid=true
-while [ $game_valid == true ]; do
-    print_grid
+# Function to check game end
+function win_check() {
+    # 3 or -3 indicates full row/col/diag
+    if [ "$1" == -3 ]; then game_end 2 return; fi
+    if [ "$1" == 3 ]; then game_end 1; fi
+}
 
-    # Player interaction
-    read -rp "Select square: " selection
-    if ((selection >= 1 && selection <= 9)); then
-        if [[ ttt[$selection-1] -eq 0 ]]; then
-            (( ttt[selection-1]++ ))
-            (( num_moves+=1 ))
-        else
-            printf "Invalid input\n"
-        fi
-    else
-        printf "Invalid input\n"
-    fi
-    
-    # AI move
-    choice_invalid=true
-    tries_counter=0
-    while [ $choice_invalid == true ]; do
-        ai_choice=$(shuf -i 0-8 -n 1)
-        if [[ ttt[ai_choice] -eq 0 ]]; then
-            choice_invalid=false
-            (( ttt[ai_choice]-=1 ))
-            (( num_moves+=1 ))
-        fi
-        ((tries_counter++))
-        if [ $tries_counter -gt 30 ]; then
-            game_end 0
-            choice_invalid=false
-        fi
-    done
-
+# Function to check board state
+function check_board_state() {
     # Check game end
     target=0
     target_row=0
@@ -107,6 +75,42 @@ while [ $game_valid == true ]; do
 
     ((target+=(ttt[2]+ttt[4]+ttt[6]))) 
     win_check $target
+}
 
+# Run until game end
+while true; do
+    print_grid
+
+    # Player interaction
+    read -rp "Select square: " selection
+    if ((selection >= 1 && selection <= 9)); then
+        if [[ ttt[$selection-1] -eq 0 ]]; then
+            (( ttt[selection-1]++ ))
+            (( num_moves+=1 ))
+        else
+            printf "Invalid input\n"
+        fi
+    else
+        printf "Invalid input\n"
+    fi
+    check_board_state
+    
+    # AI move
+    choice_invalid=true
+    tries_counter=0
+    while [ $choice_invalid == true ]; do
+        ai_choice=$(shuf -i 0-8 -n 1)
+        if [[ ttt[ai_choice] -eq 0 ]]; then
+            choice_invalid=false
+            (( ttt[ai_choice]-=1 ))
+            (( num_moves+=1 ))
+        fi
+        ((tries_counter++))
+        if [ $tries_counter -gt 30 ]; then
+            game_end 0
+            choice_invalid=false
+        fi
+    done
+    check_board_state
 
 done
