@@ -1,23 +1,22 @@
 #!/bin/bash
 
-# Init tic-tac-toe array
+# Setup stats file
+stats="tictactoe_stats.csv"
+
+if [ ! -f "$stats" ]; then
+  touch "$stats"
+  echo -e "Created $stats\n"
+fi
+
+# Init tic-tac-toe array and stats
 ttt=(0 0 0 0 0 0 0 0 0)
+num_moves=0
 
-# Function to check game end
-function win_check() {
-    if [ "$1" == 3 ] || [ "$1" == -3 ]; then 
-        echo "WINNER"
-        game_valid=false
-    fi
-}
-
-# Run until game end
-game_valid=true
-while [ $game_valid == true ]; do
-    echo
+# Function to print game grid
+function print_grid() {
+    printf "\n"
     for row in {0..2}; do
         for col in {0..2}; do
-	    # Print grid
             if [ "${ttt[row*3+col]}" == 0 ]; then
                 printf "* "
             elif [ "${ttt[row*3+col]}" == 1 ]; then
@@ -28,12 +27,38 @@ while [ $game_valid == true ]; do
         done
         printf "\n"
     done
+}
+
+# Function to check game end
+function win_check() {
+    # 3 or -3 indicates full row/col/diag
+    if [ "$1" == -3 ]; then game_end 2; fi
+    if [ "$1" == 3 ]; then game_end 1; fi
+}
+
+# Function to declare victory and write out game stats
+function game_end() {
+    print_grid
+    if [ "$1" != 0 ]; then
+        echo -e "\nWINNER: PLAYER $1"
+    else
+        echo -e "\nDRAW"
+    fi
+    echo "$1, $num_moves, ${ttt[*]}" >> $stats
+    game_valid=false
+}
+
+# Run until game end
+game_valid=true
+while [ $game_valid == true ]; do
+    print_grid
 
     # Player interaction
     read -rp "Select square: " selection
     if ((selection >= 1 && selection <= 9)); then
         if [[ ttt[$selection-1] -eq 0 ]]; then
             (( ttt[selection-1]++ ))
+            (( num_moves+=1 ))
         else
             printf "Invalid input\n"
         fi
@@ -49,44 +74,39 @@ while [ $game_valid == true ]; do
         if [[ ttt[ai_choice] -eq 0 ]]; then
             choice_invalid=false
             (( ttt[ai_choice]-=1 ))
+            (( num_moves+=1 ))
         fi
         ((tries_counter++))
-        if [ $tries_counter -gt 50 ]; then
-            echo "DRAW"
-            game_valid=false
+        if [ $tries_counter -gt 30 ]; then
+            game_end 0
             choice_invalid=false
         fi
     done
 
     # Check game end
     target=0
+    target_row=0
+    target_col=0
 
-    # Rows
+    # Rows and cols
     for ((i = 0 ; i < 3; i++));
         do for ((j = 0 ; j < 3 ; j++));
-            do ((target+=ttt[i*3+j])) 
+            do ((target_row+=ttt[i*3+j]))
+            ((target_col+=ttt[j*3+i])) 
         done
-        win_check $target
-        target=0 # reset
+        win_check $target_row
+        win_check $target_col
+        target_row=0 # reset
+        target_col=0 # reset
     done
 
-    # cols
-    for ((i = 0 ; i < 3; i++));
-        do for ((j = 0 ; j < 3 ; j++));
-            do ((target+=ttt[j*3+i])) 
-        done
-        win_check $target
-        target=0 # reset
-    done
-
-    # diag
+    # Diagionals
     ((target+=(ttt[0]+ttt[4]+ttt[8]))) 
     win_check $target
     target=0 # reset
 
     ((target+=(ttt[2]+ttt[4]+ttt[6]))) 
     win_check $target
-    target=0 # reset
 
 
 done
