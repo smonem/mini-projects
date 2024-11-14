@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Imports
-source ./game_library.sh
+source "./game_library.sh"
 
 # Script options
 player_1_human=true
 while getopts 'ra' flag; do
   case "${flag}" in
     r) # reset
-    rm "./tictactoe_stats.csv" ;;
+    rm "./tictactoe_data.csv" ;;
     a) # auto
     player_1_human=false ;;
     *) # Invalid
@@ -16,13 +16,13 @@ while getopts 'ra' flag; do
   esac
 done
 
-# Setup stats file
-stats="tictactoe_stats.csv"
+# Setup raw game data file
+data="tictactoe_data.csv"
 
-if [ ! -f "$stats" ]; then
-  touch "$stats"
-  echo "date", "winner", "num_moves", "board" > $stats
-  echo -e "Created $stats\n"
+if [ ! -f "$data" ]; then
+  touch "$data"
+  echo "date", "winner", "num_moves", "board" > $data
+  echo -e "Created $data\n"
 fi
 
 # Init tic-tac-toe array and stats
@@ -38,7 +38,7 @@ function game_end() {
     else
         echo -e "\nDRAW"
     fi
-    echo "$game_date,$1,$num_moves,${board[*]}" >> $stats
+    echo "$game_date,$1,$num_moves,${board[*]}" >> $data
     exit 0
 }
 
