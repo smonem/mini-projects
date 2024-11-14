@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Imports
+source ./game_library.sh
+
 # Script options
 player_1_human=true
 while getopts 'ra' flag; do
@@ -26,26 +29,9 @@ board=(0 0 0 0 0 0 0 0 0)
 num_moves=0
 game_date=$(date '+%Y-%m-%d %H:%M:%S')
 
-# Function to print game grid
-function print_grid() {
-    printf "\n"
-    for row in {0..2}; do
-        for col in {0..2}; do
-            if [ "${board[row*3+col]}" == 0 ]; then
-                printf "* "
-            elif [ "${board[row*3+col]}" == 1 ]; then
-                printf "X "
-            else
-                printf "0 "
-            fi
-        done
-        printf "\n"
-    done
-}
-
 # Function to declare victory and write out game stats
 function game_end() {
-    print_grid
+    print_grid "${board[@]}"
     if [ "$1" != 0 ]; then
         echo -e "\nWINNER: PLAYER $1"
     else
@@ -81,7 +67,7 @@ function check_board_state() {
         target_col=0 # reset
     done
 
-    # Diagionals
+    # Diagonals
     ((target+=(board[0]+board[4]+board[8]))) 
     win_check $target
     target=0 # reset
@@ -111,7 +97,7 @@ function ai_move() {
 
 # Run until game end
 while true; do
-    print_grid
+    print_grid "${board[@]}"
 
     # Player 1 move
     if $player_1_human; then
