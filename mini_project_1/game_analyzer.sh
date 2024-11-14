@@ -4,17 +4,6 @@
 source ./game_library.sh
 data_file="tictactoe_data.csv"
 
-# Script options
-while getopts 'r' flag; do
-  case "${flag}" in
-    r) # reset
-    rm "./game_stats.txt"
-    rm "./game_record.txt" ;;
-    *) # Invalid
-    printf "Option not recognized\n"
-  esac
-done
-
 # Setup game stats and records files
 stats="game_stats.txt"
 records="game_record.txt"
@@ -56,7 +45,7 @@ echo "Aggregate Statistics for games"
 echo "Last Ran: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "=============================="
 echo "Total Games Played: $num_games"
-echo "Win percentage: $win_rate"
+echo "Win percentage: $win_rate%"
 echo "Average number of moves: $avg_moves"
 echo
 } > $stats

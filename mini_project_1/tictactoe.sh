@@ -1,14 +1,12 @@
 #!/bin/bash
 
 # Imports
-source "./game_library.sh"
+source ./game_library.sh
 
 # Script options
 player_1_human=true
-while getopts 'ra' flag; do
+while getopts 'a' flag; do
   case "${flag}" in
-    r) # reset
-    rm "./tictactoe_data.csv" ;;
     a) # auto
     player_1_human=false ;;
     *) # Invalid
