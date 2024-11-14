@@ -7,9 +7,9 @@ source ./game_library.sh
 player_1_human=true
 while getopts 'a' flag; do
   case "${flag}" in
-    a) # auto
+    a) # sets player 1 to ai/random selection
     player_1_human=false ;;
-    *) # Invalid
+    *) # Invalid option
     printf "Option not recognized\n"
   esac
 done
@@ -49,6 +49,11 @@ function win_check() {
 
 # Function to check board state
 function check_board_state() {
+    # Check draw status
+    if [ $num_moves == 9 ]; then
+        game_end 0
+    fi
+
     # Check game end
     target=0
     target_row=0
@@ -77,20 +82,21 @@ function check_board_state() {
 
 # AI selects choice from board
 function ai_move() {
-    choice_invalid=true
-    tries_counter=0
-    while [ $choice_invalid == true ]; do
-        ai_choice=$(shuf -i 0-8 -n 1)
-        if [[ board[ai_choice] -eq 0 ]]; then
-            choice_invalid=false
-            (( board[ai_choice]+=$1 ))
-            (( num_moves+=1 ))
+    # Get available choices
+    valid_choices=()
+    n=0
+    for i in "${board[@]}";
+        do if [ "$i" -eq 0 ]; then
+            valid_choices+=("$n")
         fi
-        ((tries_counter++))
-        if [ $tries_counter -gt 30 ]; then
-            game_end 0
-        fi
+        (( n++ ))
     done
+    random_select=$(( RANDOM % ${#valid_choices[@]} )) # Randomly generates index from alid choices array
+    ai_choice="${valid_choices[$random_select]}" # Selects valid square choice
+
+    # Make choice and check board
+    (( board[ai_choice]+=$1 ))
+    (( num_moves+=1 ))
     check_board_state
 }
 
@@ -100,15 +106,19 @@ while true; do
 
     # Player 1 move
     if $player_1_human; then
-        read -rp "Select square (1-9): " selection
-        if ((selection >= 1 && selection <= 9)) && \
-        [[ board[$selection-1] -eq 0 ]]; then
-                (( board[selection-1]++ ))
-                (( num_moves+=1 ))
-            else
-                printf "Invalid input\n"
-        fi
-        check_board_state
+        choice_invalid=true
+        while [[ $choice_invalid == true ]];
+            do read -rp "Select square (1-9): " selection
+            if ((selection >= 1 && selection <= 9)) && \
+            [[ board[$selection-1] -eq 0 ]]; then
+                    (( board[selection-1]++ ))
+                    (( num_moves+=1 ))
+                    choice_invalid=false
+                else
+                    printf "Invalid input. Please select a different square.\n\n"
+            fi
+            check_board_state
+        done
     else
         ai_move 1
     fi
