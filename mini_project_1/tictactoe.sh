@@ -21,6 +21,7 @@ stats="tictactoe_stats.csv"
 
 if [ ! -f "$stats" ]; then
   touch "$stats"
+  echo "date", "winner", "num_moves", "board" > $stats
   echo -e "Created $stats\n"
 fi
 
@@ -37,7 +38,7 @@ function game_end() {
     else
         echo -e "\nDRAW"
     fi
-    echo "$game_date, $1, $num_moves, ${board[*]}" >> $stats
+    echo "$game_date,$1,$num_moves,${board[*]}" >> $stats
     exit 0
 }
 
